@@ -1,19 +1,24 @@
 (function() {
   try {
-    var url = window.location.href;
-    var urlObj = new URL(url);
-    var params = urlObj.searchParams;
+    if (window.location.href.includes("amp=1")) return;
+    if (window.top !== window.self) return;
 
-    var isMobileParam = params.has('m') && params.get('m') === '1';
-    var isAmpParam = params.has('amp') && params.get('amp') === '1';
+    const targets = ["%3D%3D", "%3D", "?m=1", "&m=1"];
+    let url = window.location.toString();
+    let cleanUrl = url;
 
-    if (isMobileParam && !isAmpParam) {
-      params.delete('m');
-      urlObj.search = params.toString();
-      var cleanUrl = urlObj.toString();
-      window.location.replace(cleanUrl);
+    targets.forEach(param => {
+      const index = cleanUrl.indexOf(param);
+      if (index > -1) {
+        cleanUrl = cleanUrl.substring(0, index);
+      }
+    });
+
+    if (cleanUrl !== url) {
+      window.history.replaceState({}, document.title, cleanUrl);
+      console.info("✅ Cleaned URL:", cleanUrl);
     }
   } catch (e) {
-    console.error("Redirect cleaner error:", e);
+    console.error("❌ Redirect cleaner error:", e);
   }
 })();
